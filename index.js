@@ -1,7 +1,6 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
-//import marked from 'marked';
+import mongoose from 'mongoose';
+import { marked } from 'marked';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -14,41 +13,76 @@ app.get('/ping', (req, res) => {
     res.json({ message: 'pong' });
 });
 
-// GET endpoint to list all markdown files
-//app.get('/posts', async (req, res) => {
-//    try {
-//        const postsDirectory = path.join(process.cwd(), 'posts');
-//        const files = await fs.readdir(postsDirectory);
-//        const markdownFiles = files.filter(file => file.endsWith('.md'));
-//        
-//        res.json({
-//            posts: markdownFiles.map(filename => ({
-//                id: filename.replace('.md', ''),
-//                filename
-//            }))
-//        });
-//    } catch (error) {
-//        console.error('Error reading posts directory:', error);
-//        res.status(500).json({ error: 'Failed to read posts' });
-//    }
-//});
-//
-//// GET endpoint to serve a specific markdown file
-//app.get('/posts/:id', async (req, res) => {
-//    try {
-//        const { id } = req.params;
-//        const postsDirectory = path.join(process.cwd(), 'posts');
-//        const filePath = path.join(postsDirectory, `${id}.md`);
-//        
-//        const fileContent = await fs.readFile(filePath, 'utf-8');
-//        const htmlContent = marked(fileContent);
-//        
-//        res.send(htmlContent);
-//    } catch (error) {
-//        console.error('Error reading markdown file:', error);
-//        res.status(404).json({ error: 'Post not found' });
-//    }
-//});
+// MongoDB connection to 'blog' database
+mongoose.connect('mongodb://localhost:27017/blog', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+// Simple Article Schema
+const articleSchema = new mongoose.Schema({
+    title: String,
+    content: String,
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Use the 'articles' collection
+const Article = mongoose.model('Article', articleSchema, 'articles');
+
+app.post('/articles', async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        
+        if (!title || !content) {
+            return res.status(400).json({ error: 'Title and content are required' });
+        }
+
+        const article = new Article({
+            title,
+            content
+        });
+
+        await article.save();
+        res.status(201).json(article);
+    } catch (error) {
+        console.error('Error creating article:', error);
+        res.status(500).json({ error: 'Failed to create article' });
+    }
+});
+
+// Get all articles
+app.get('/articles', async (req, res) => {
+    try {
+        const articles = await Article.find({}, 'title createdAt');
+        res.json(articles);
+    } catch (error) {
+        console.error('Error fetching articles:', error);
+        res.status(500).json({ error: 'Failed to fetch articles' });
+    }
+});
+
+// Get a specific article
+app.get('/articles/:id', async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+        if (!article) {
+            return res.status(404).json({ error: 'Article not found' });
+        }
+
+        // Convert markdown to HTML if requested
+        if (req.query.format === 'html') {
+            article.content = marked(article.content);
+        }
+
+        res.json(article);
+    } catch (error) {
+        console.error('Error fetching article:', error);
+        res.status(500).json({ error: 'Failed to fetch article' });
+    }
+});
 
 // Basic error handling middleware
 app.use((err, req, res, next) => {
