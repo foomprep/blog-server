@@ -1,12 +1,16 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { marked } from 'marked';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+// CORS middleware to allow any origin
+app.use(cors());
 
 // Ping endpoint
 app.get('/ping', (req, res) => {
