@@ -5,6 +5,7 @@ import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
+const API_KEY = '624f1f720a532f24749f5adb650f1a4e986842c53f5cb762c6def5a9a8a0db06';
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -36,9 +37,10 @@ const Article = mongoose.model('Article', articleSchema, 'articles');
 app.post('/articles', async (req, res) => {
     try {
         const { title, content } = req.body;
-        
-        if (!title || !content) {
-            return res.status(400).json({ error: 'Title and content are required' });
+        const authHeader = req.headers.authorization;
+
+        if (!title || !content || authHeader !== `Bearer ${API_KEY}`) {
+            return res.status(401).json({ error: 'Invalid API key or missing title/content' });
         }
 
         const article = new Article({
