@@ -1,0 +1,13 @@
+{
+  "name": "blog-server",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:foomprep/blog-server.git",
+  "author": "George Balch <gbalch714@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "marked": "^15.0.6"
+  }
+}
