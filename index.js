@@ -14,10 +14,7 @@ app.get('/ping', (req, res) => {
 });
 
 // MongoDB connection to 'blog' database
-mongoose.connect('mongodb://localhost:27017/blog', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect('mongodb://localhost:27017/blog');
 
 // Simple Article Schema
 const articleSchema = new mongoose.Schema({
