@@ -4,8 +4,8 @@ import { marked } from 'marked';
 import cors from 'cors';
 
 const app = express();
+const API_KEY = process.env.API_KEY;
 const PORT = process.env.PORT || 3003;
-const API_KEY = '624f1f720a532f24749f5adb650f1a4e986842c53f5cb762c6def5a9a8a0db06';
 
 // Middleware to parse JSON bodies
 app.use(express.json());
